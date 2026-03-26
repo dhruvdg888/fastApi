@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel,ConfigDict, EmailStr
 from datetime import datetime
 
@@ -16,6 +18,7 @@ class PostCreate(PostBase):
 class Post(PostBase):
     id: int
     created_at: datetime
+    owner_id: int
 
     # to display our ORM response
     model_config = ConfigDict(from_attributes=True)
@@ -42,3 +45,13 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+#token schema
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id : Optional[str] = None
