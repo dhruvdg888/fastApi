@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, status, HTTPException, Response, Depends, APIRouter
 from fastapi.params import Body
@@ -15,10 +15,14 @@ router = APIRouter(
 
 # Get all the posts
 @router.get("/", response_model= List[schemas.Post])
-def get_posts(db:Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
+def get_posts(db:Session = Depends(get_db), current_user = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
 
     #using SQL Alchemy ORM
-    posts = db.query(models.Post).all()
+
+    # for pagination & search
+    #here using limit we are applying the query to see particular ammount of posts
+    #offset is to skip some
+    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return posts
 
 # Create post

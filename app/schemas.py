@@ -3,6 +3,23 @@ from typing import Optional
 from pydantic import BaseModel,ConfigDict, EmailStr
 from datetime import datetime
 
+
+#User
+# Request
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+# Response
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+
+    # to display our ORM response
+    model_config = ConfigDict(from_attributes=True)
+
+
 # Post
 # Request
 class PostBase(BaseModel):
@@ -19,22 +36,11 @@ class Post(PostBase):
     id: int
     created_at: datetime
     owner_id: int
+    owner: UserOut
 
     # to display our ORM response
     model_config = ConfigDict(from_attributes=True)
 
-
-
-#User
-# Request
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-
-# Response
-class UserOut(BaseModel):
-    id: int
-    email: EmailStr
 
 
 #update Password
