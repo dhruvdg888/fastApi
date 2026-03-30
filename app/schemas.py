@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel,ConfigDict, EmailStr
+from pydantic import BaseModel,ConfigDict, EmailStr, conint
 from datetime import datetime
 
 
@@ -41,6 +41,14 @@ class Post(PostBase):
     # to display our ORM response
     model_config = ConfigDict(from_attributes=True)
 
+class PostOut(BaseModel):
+    Post: Post
+    votes: int
+
+    # to display our ORM response
+    model_config = ConfigDict(from_attributes=True)
+
+
 
 
 #update Password
@@ -61,3 +69,10 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id : Optional[str] = None
+
+
+# vote
+
+class Vote(BaseModel):
+    post_id: int
+    dir: conint(ge=0, le=1)

@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI, status, HTTPException, Response, Depends, APIRouter
 from fastapi.params import Body
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -14,16 +15,16 @@ router = APIRouter(
 )
 
 # Get all the posts
-@router.get("/", response_model= List[schemas.Post])
+@router.get("/", response_model=List[schemas.PostOut])
 def get_posts(db:Session = Depends(get_db), current_user = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
 
-    #using SQL Alchemy ORM
-
+    # using SQLAlchemy ORM
     # for pagination & search
-    #here using limit we are applying the query to see particular ammount of posts
-    #offset is to skip some
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return posts
+    # here using limit we are applying the query to see particular amount of posts
+    # offset is to skip some
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).limit(limit).offset(skip).all()
+
+    return results
 
 # Create post
 @router.post("/",status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
@@ -39,15 +40,17 @@ def create_posts(post: schemas.PostCreate, db:Session = Depends(get_db), current
 
 
 # Get individual post
-@router.get("/{id}",response_model=schemas.Post)
+@router.get("/{id}",response_model=schemas.PostOut)
 def get_post(id: int,db:Session = Depends(get_db),current_user = Depends(oauth2.get_current_user)):
 
     post = db.query(models.Post).filter(models.Post.id == id).first()
 
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote,models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).first()
 
-    if not post:
+
+    if not results:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} was not found")
-    return post
+    return results
 
 
 # Delete a post
