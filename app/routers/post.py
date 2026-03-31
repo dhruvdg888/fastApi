@@ -22,9 +22,9 @@ def get_posts(db:Session = Depends(get_db), current_user = Depends(oauth2.get_cu
     # for pagination & search
     # here using limit we are applying the query to see particular amount of posts
     # offset is to skip some
-    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).limit(limit).offset(skip).all()
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).limit(limit).offset(skip).all()
 
-    return results
+    return posts
 
 # Create post
 @router.post("/",status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
@@ -43,14 +43,14 @@ def create_posts(post: schemas.PostCreate, db:Session = Depends(get_db), current
 @router.get("/{id}",response_model=schemas.PostOut)
 def get_post(id: int,db:Session = Depends(get_db),current_user = Depends(oauth2.get_current_user)):
 
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
 
-    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote,models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).first()
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote,models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).first()
 
 
-    if not results:
+    if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} was not found")
-    return results
+    return post
 
 
 # Delete a post
